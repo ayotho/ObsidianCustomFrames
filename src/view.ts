@@ -39,13 +39,22 @@ export class CustomFrameView extends ItemView {
     private readonly data: CustomFrameSettings;
     private readonly name: string;
     private frame: CustomFrame;
+    private faviconUrl = "";
 
     constructor(leaf: WorkspaceLeaf, settings: CustomFramesSettings, data: CustomFrameSettings, name: string) {
         super(leaf);
         this.data = data;
         this.name = name;
-        this.frame = new CustomFrame(settings, data);
+        this.frame = new CustomFrame(settings, data, favicon => {
+            this.faviconUrl = favicon;
+            this.updateFavicon();
+        });
         this.navigation = data.openInCenter;
+
+        this.registerEvent(this.app.workspace.on("active-leaf-change", activeLeaf => {
+            if (activeLeaf == this.leaf && this.faviconUrl)
+                this.updateFavicon();
+        }));
 
         for (let action of CustomFrameView.actions)
             this.addAction(action.icon, action.name, () => action.action(this));
@@ -78,6 +87,19 @@ export class CustomFrameView extends ItemView {
 
     getIcon(): string {
         return getIcon(this.data);
+    }
+
+    private updateFavicon(): void {
+        let tabHeader = (this.leaf as any).tabHeaderEl as HTMLElement;
+        let icon = tabHeader?.querySelector<HTMLElement>(".workspace-tab-header-inner-icon");
+        if (!icon || !this.faviconUrl)
+            return;
+
+        icon.empty();
+        let container = icon.createDiv({ cls: "custom-frames-favicon-container" });
+        let image = container.createEl("img");
+        image.src = this.faviconUrl;
+        image.alt = "";
     }
 
     focus(): void {

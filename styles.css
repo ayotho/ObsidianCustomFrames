@@ -28,3 +28,17 @@
     width: 100%;
     height: auto;
 }
+
+.custom-frames-favicon-container {
+    align-items: center;
+    display: flex;
+    height: var(--icon-size);
+    justify-content: center;
+    width: var(--icon-size);
+}
+
+.custom-frames-favicon-container img {
+    height: var(--icon-size);
+    object-fit: contain;
+    width: var(--icon-size);
+}

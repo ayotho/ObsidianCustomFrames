@@ -4,11 +4,13 @@ import { CustomFrameSettings, CustomFramesSettings, getId } from "./settings";
 export class CustomFrame {
     private readonly settings: CustomFramesSettings;
     private readonly data: CustomFrameSettings;
+    private readonly onFaviconUpdated?: (faviconUrl: string) => void;
     private frame: HTMLIFrameElement | any;
 
-    constructor(settings: CustomFramesSettings, data: CustomFrameSettings) {
+    constructor(settings: CustomFramesSettings, data: CustomFrameSettings, onFaviconUpdated?: (faviconUrl: string) => void) {
         this.settings = settings;
         this.data = data;
+        this.onFaviconUpdated = onFaviconUpdated;
     }
 
     create(parent: HTMLElement, additionalStyle: string = undefined, urlSuffix: string = undefined): void {
@@ -25,6 +27,11 @@ export class CustomFrame {
                 this.frame.setZoomFactor(this.data.zoomLevel);
                 this.frame.insertCSS(this.data.customCss);
                 this.frame.executeJavaScript(this.data.customJs);
+            });
+            this.frame.addEventListener("page-favicon-updated", (event: any) => {
+                let favicon = event.favicons?.[0];
+                if (favicon)
+                    this.onFaviconUpdated?.(favicon);
             });
             this.frame.addEventListener("destroyed", () => {
                 // recreate the webview if it was moved to a new window
